@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "PlanCast",
+    "slug": "PlanCast",
+    "version": "1.0",
+    "ios": {
+      "bundleIdentifier": "com.paulsachse.PlanCast"
+    }
+  }
+}
