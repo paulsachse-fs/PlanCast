@@ -30,6 +30,7 @@ export default function App() {
   const [screen, setScreen] = useState<'list' | 'new' | 'details'>('list');
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [tab, setTab] = useState<'Plans' | 'Locations' | 'Insights' | 'Settings'>('Plans');
 
   useEffect(() => {
     loadPlans();
@@ -60,13 +61,31 @@ export default function App() {
     setScreen('details');
   };
 
-  if (screen === 'new') {
-    return <NewPlan onSave={addPlan} onBack={() => setScreen('list')} />;
+  if (tab === 'Plans') {
+    if (screen === 'new') {
+      return <NewPlan onSave={addPlan} onBack={() => setScreen('list')} />;
+    }
+    if (screen === 'details' && selectedPlan) {
+      return <PlanDetails plan={selectedPlan} onBack={() => setScreen('list')} onDelete={deletePlan} />;
+    }
   }
-  if (screen === 'details' && selectedPlan) {
-    return <PlanDetails plan={selectedPlan} onBack={() => setScreen('list')} onDelete={deletePlan} />;
-  }
-  return <PlansList plans={plans} onAdd={() => setScreen('new')} onSelect={openDetails} />;
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {tab === 'Plans' && <PlansList plans={plans} onAdd={() => setScreen('new')} onSelect={openDetails} />}
+      {tab === 'Locations' && <View style={{ flex: 1 }}><Text style={styles.title}>Locations</Text></View>}
+      {tab === 'Insights' && <View style={{ flex: 1 }}><Text style={styles.title}>Insights</Text></View>}
+      {tab === 'Settings' && <View style={{ flex: 1 }}><Text style={styles.title}>Settings</Text></View>}
+
+      <View style={styles.tabBar}>
+        {(['Plans', 'Locations', 'Insights', 'Settings'] as const).map(t => (
+          <TouchableOpacity key={t} style={styles.tabItem} onPress={() => { setTab(t); setScreen('list'); }}>
+            <Text style={tab === t ? styles.tabActive : styles.tabText}>{t}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </SafeAreaView>
+  );
 }
 
 // Plans List Screen
@@ -76,7 +95,7 @@ function PlansList({ plans, onAdd, onSelect }: {
   onSelect: (plan: Plan) => void;
 }) {
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={{ flex: 1 }}>
       <Text style={styles.title}>My Plans</Text>
       {plans.length === 0 ? (
         <Text style={styles.empty}>No plans yet.</Text>
@@ -95,7 +114,7 @@ function PlansList({ plans, onAdd, onSelect }: {
       <TouchableOpacity style={styles.btn} onPress={onAdd}>
         <Text style={styles.btnText}>+ Add Plan</Text>
       </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -297,4 +316,8 @@ const styles = StyleSheet.create({
   score: { fontSize: 48, fontWeight: 'bold' },
   guidance: { color: '#fff', padding: 12, borderRadius: 8, textAlign: 'center', fontWeight: '600', fontSize: 18, overflow: 'hidden' },
   error: { color: '#ef4444' },
+  tabBar: { flexDirection: 'row', borderTopWidth: 1, borderColor: '#eee', paddingVertical: 8 },
+  tabItem: { flex: 1, alignItems: 'center', paddingVertical: 8 },
+  tabText: { color: '#999' },
+  tabActive: { color: '#3b82f6', fontWeight: '600' },
 });
