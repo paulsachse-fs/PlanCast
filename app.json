@@ -5,6 +5,14 @@
     "version": "1.0",
     "ios": {
       "bundleIdentifier": "com.paulsachse.PlanCast"
-    }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "This app uses your location to get weather forecasts for your plans."
+        }
+      ]
+    ]
   }
 }

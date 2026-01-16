@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, FlatList,
-  StyleSheet, SafeAreaView
+  StyleSheet, SafeAreaView, Alert
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
 
 // Types
 type Activity = 'Outdoor' | 'Indoor' | 'Commute' | 'Other';
@@ -173,6 +174,17 @@ function NewPlan({ onSave, onBack }: { onSave: (p: Plan) => void; onBack: () => 
   const activities: Activity[] = ['Outdoor', 'Indoor', 'Commute', 'Other'];
   const importances: Importance[] = ['Low', 'Medium', 'High'];
 
+  const useCurrentLocation = async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission denied');
+      return;
+    }
+    const location = await Location.getCurrentPositionAsync({});
+    setLat(location.coords.latitude.toFixed(4));
+    setLon(location.coords.longitude.toFixed(4));
+  };
+
   const handleSave = () => {
     if (!title.trim()) return;
     onSave({
@@ -206,6 +218,9 @@ function NewPlan({ onSave, onBack }: { onSave: (p: Plan) => void; onBack: () => 
         <TextInput style={[styles.input, { flex: 1, marginRight: 8 }]} value={lat} onChangeText={setLat} keyboardType="numeric" />
         <TextInput style={[styles.input, { flex: 1 }]} value={lon} onChangeText={setLon} keyboardType="numeric" />
       </View>
+      <TouchableOpacity onPress={useCurrentLocation} style={[styles.btn, { marginTop: 8 }]}>
+        <Text style={styles.btnText}>Use Current Location</Text>
+      </TouchableOpacity>
 
       <Text style={styles.label}>Activity Type</Text>
       <View style={styles.row}>

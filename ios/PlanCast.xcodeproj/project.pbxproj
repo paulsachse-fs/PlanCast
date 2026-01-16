@@ -24,7 +24,7 @@
 		2E7143DFC0DF168804BC4429 /* Pods-PlanCast.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PlanCast.debug.xcconfig"; path = "Target Support Files/Pods-PlanCast/Pods-PlanCast.debug.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = PlanCast/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		BB5AA105C9141AC9C7F34DD7 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = PlanCast/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		BB5AA105C9141AC9C7F34DD7 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = PlanCast/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		E1FFD20494AB838C8322242E /* libPods-PlanCast.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PlanCast.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = PlanCast/AppDelegate.swift; sourceTree = "<group>"; };
@@ -89,7 +89,6 @@
 				2E7143DFC0DF168804BC4429 /* Pods-PlanCast.debug.xcconfig */,
 				019C18F1DFD2B126602F8EFA /* Pods-PlanCast.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
