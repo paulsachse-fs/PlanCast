@@ -18,6 +18,7 @@ type Plan = {
   importance: Importance;
   lat: number;
   lon: number;
+  locationName?: string;
 };
 
 type Weather = {
@@ -26,15 +27,19 @@ type Weather = {
   wind: number;
 };
 
+type SavedLocation = { id: string; name: string; lat: number; lon: number };
+
 // Main App
 export default function App() {
   const [screen, setScreen] = useState<'list' | 'new' | 'details'>('list');
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [tab, setTab] = useState<'Plans' | 'Locations' | 'Insights' | 'Settings'>('Plans');
+  const [locations, setLocations] = useState<SavedLocation[]>([]);
 
   useEffect(() => {
     loadPlans();
+    loadLocations();
   }, []);
 
   const loadPlans = async () => {
@@ -45,6 +50,18 @@ export default function App() {
   const savePlans = async (newPlans: Plan[]) => {
     await AsyncStorage.setItem('plans', JSON.stringify(newPlans));
     setPlans(newPlans);
+  };
+
+  const loadLocations = async () => {
+    const data = await AsyncStorage.getItem('locations');
+    if (data) setLocations(JSON.parse(data));
+  };
+
+  const addLocation = async (name: string, lat: number, lon: number) => {
+    if (locations.some(l => l.lat === lat && l.lon === lon)) return;
+    const updated = [...locations, { id: Date.now().toString(), name, lat, lon }];
+    await AsyncStorage.setItem('locations', JSON.stringify(updated));
+    setLocations(updated);
   };
 
   const addPlan = (plan: Plan) => {
@@ -64,7 +81,7 @@ export default function App() {
 
   if (tab === 'Plans') {
     if (screen === 'new') {
-      return <NewPlan onSave={addPlan} onBack={() => setScreen('list')} />;
+      return <NewPlan onSave={addPlan} onBack={() => setScreen('list')} addLocation={addLocation} />;
     }
     if (screen === 'details' && selectedPlan) {
       return <PlanDetails plan={selectedPlan} onBack={() => setScreen('list')} onDelete={deletePlan} />;
@@ -74,7 +91,7 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       {tab === 'Plans' && <PlansList plans={plans} onAdd={() => setScreen('new')} onSelect={openDetails} />}
-      {tab === 'Locations' && <View style={{ flex: 1 }}><Text style={styles.title}>Locations</Text></View>}
+      {tab === 'Locations' && <LocationsScreen locations={locations} />}
       {tab === 'Insights' && <View style={{ flex: 1 }}><Text style={styles.title}>Insights</Text></View>}
       {tab === 'Settings' && <SettingsScreen />}
 
@@ -162,12 +179,17 @@ function PlansList({ plans, onAdd, onSelect }: {
 }
 
 // New Plan Screen
-function NewPlan({ onSave, onBack }: { onSave: (p: Plan) => void; onBack: () => void }) {
+function NewPlan({ onSave, onBack, addLocation }: {
+  onSave: (p: Plan) => void;
+  onBack: () => void;
+  addLocation: (name: string, lat: number, lon: number) => void;
+}) {
   const [title, setTitle] = useState('');
-  const [date, setDate] = useState('2026-01-15');
+  const [date, setDate] = useState('2026-03-15');
   const [time, setTime] = useState('14:00');
-  const [lat, setLat] = useState('52.52');
-  const [lon, setLon] = useState('13.405');
+  const [lat, setLat] = useState('28.6');
+  const [lon, setLon] = useState('81.3');
+  const [locationName, setLocationName] = useState('');
   const [activity, setActivity] = useState<Activity>('Outdoor');
   const [importance, setImportance] = useState<Importance>('Medium');
 
@@ -187,6 +209,9 @@ function NewPlan({ onSave, onBack }: { onSave: (p: Plan) => void; onBack: () => 
 
   const handleSave = () => {
     if (!title.trim()) return;
+    const parsedLat = parseFloat(lat) || 28.6;
+    const parsedLon = parseFloat(lon) || 81.3;
+    addLocation(locationName.trim() || 'Unnamed', parsedLat, parsedLon);
     onSave({
       id: Date.now().toString(),
       title: title.trim(),
@@ -194,8 +219,9 @@ function NewPlan({ onSave, onBack }: { onSave: (p: Plan) => void; onBack: () => 
       time,
       activity,
       importance,
-      lat: parseFloat(lat) || 52.52,
-      lon: parseFloat(lon) || 13.405,
+      lat: parsedLat,
+      lon: parsedLon,
+      locationName: locationName.trim() || undefined,
     });
   };
 
@@ -212,6 +238,9 @@ function NewPlan({ onSave, onBack }: { onSave: (p: Plan) => void; onBack: () => 
 
       <Text style={styles.label}>Time (HH:MM)</Text>
       <TextInput style={styles.input} value={time} onChangeText={setTime} />
+
+      <Text style={styles.label}>Location Name (optional)</Text>
+      <TextInput style={styles.input} value={locationName} onChangeText={setLocationName} placeholder="e.g., Central Park" />
 
       <Text style={styles.label}>Location (Lat / Lon)</Text>
       <View style={styles.row}>
@@ -380,6 +409,26 @@ function PlanDetails({ plan, onBack, onDelete }: { plan: Plan; onBack: () => voi
         <Text style={styles.btnText}>Delete Plan</Text>
       </TouchableOpacity>
     </SafeAreaView>
+  );
+}
+
+// Locations Screen
+function LocationsScreen({ locations }: { locations: SavedLocation[] }) {
+  return (
+    <View style={{ flex: 1, padding: 20 }}>
+      <Text style={styles.title}>Saved Locations</Text>
+      <FlatList
+        data={locations}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.planCard}>
+            <Text style={styles.planTitle}>{item.name || 'Unnamed'}</Text>
+            <Text style={styles.planSub}>{item.lat}, {item.lon}</Text>
+          </View>
+        )}
+        ListEmptyComponent={<Text style={styles.empty}>No saved locations yet.</Text>}
+      />
+    </View>
   );
 }
 
