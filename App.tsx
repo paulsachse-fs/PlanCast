@@ -295,6 +295,35 @@ function PlanDetails({ plan, onBack, onDelete }: { plan: Plan; onBack: () => voi
     return { text: 'Reschedule', color: '#ef4444' };
   };
 
+  const getExplanation = (w: Weather, s: {rain: number, wind: number, temp: number}) => {
+    const totalPoints = s.rain + s.wind + s.temp;
+
+    // Low score = good weather
+    if (totalPoints < 15) {
+      return 'Weather conditions look favorable.';
+    }
+
+    // Find the dominant factor
+    const isRainDominant = s.rain >= s.wind && s.rain >= s.temp;
+    const isWindDominant = s.wind >= s.rain && s.wind >= s.temp;
+
+    if (isRainDominant) {
+      if (w.rain > 5) {
+        return `Rain (${w.rain.toFixed(1)}mm) is the main concern.`;
+      }
+      return 'Light rain may affect plans.';
+    }
+
+    if (isWindDominant) {
+      return `Wind (${w.wind.toFixed(1)}m/s) is the main factor.`;
+    }
+
+    if (w.temp < 10) {
+      return 'Cold temperatures may be uncomfortable.';
+    }
+    return 'Warm temperatures may be a factor.';
+  };
+
   const score = weather ? calcScore(weather, mode) : null;
   const guidance = score ? getGuidance(score.total) : null;
 
@@ -336,6 +365,9 @@ function PlanDetails({ plan, onBack, onDelete }: { plan: Plan; onBack: () => voi
           <Text>Rain: +{score.rain} pts</Text>
           <Text>Wind: +{score.wind} pts</Text>
           <Text>Temp: +{score.temp} pts</Text>
+
+          <Text style={styles.label}>Why this score?</Text>
+          <Text style={{ color: '#666', marginBottom: 8 }}>{getExplanation(weather, score)}</Text>
 
           <View style={styles.divider} />
 
