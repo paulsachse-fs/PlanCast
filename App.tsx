@@ -76,7 +76,7 @@ export default function App() {
       {tab === 'Plans' && <PlansList plans={plans} onAdd={() => setScreen('new')} onSelect={openDetails} />}
       {tab === 'Locations' && <View style={{ flex: 1 }}><Text style={styles.title}>Locations</Text></View>}
       {tab === 'Insights' && <View style={{ flex: 1 }}><Text style={styles.title}>Insights</Text></View>}
-      {tab === 'Settings' && <View style={{ flex: 1 }}><Text style={styles.title}>Settings</Text></View>}
+      {tab === 'Settings' && <SettingsScreen />}
 
       <View style={styles.tabBar}>
         {(['Plans', 'Locations', 'Insights', 'Settings'] as const).map(t => (
@@ -380,6 +380,40 @@ function PlanDetails({ plan, onBack, onDelete }: { plan: Plan; onBack: () => voi
         <Text style={styles.btnText}>Delete Plan</Text>
       </TouchableOpacity>
     </SafeAreaView>
+  );
+}
+
+// Settings Screen
+function SettingsScreen() {
+  return (
+    <View style={{ flex: 1, padding: 20 }}>
+      <Text style={styles.title}>Settings</Text>
+
+      <Text style={styles.label}>Temperature Unit</Text>
+      <View style={styles.row}>
+        <View style={[styles.seg, styles.segActive]}><Text style={styles.segTextActive}>°C</Text></View>
+        <View style={styles.seg}><Text style={styles.segText}>°F</Text></View>
+      </View>
+
+      <Text style={styles.label}>Wind Speed Unit</Text>
+      <View style={styles.row}>
+        <View style={[styles.seg, styles.segActive]}><Text style={styles.segTextActive}>m/s</Text></View>
+        <View style={styles.seg}><Text style={styles.segText}>km/h</Text></View>
+      </View>
+
+      <Text style={styles.label}>Risk Tolerance</Text>
+      <View style={styles.row}>
+        <View style={styles.seg}><Text style={styles.segText}>Low</Text></View>
+        <View style={[styles.seg, styles.segActive]}><Text style={styles.segTextActive}>Medium</Text></View>
+        <View style={styles.seg}><Text style={styles.segText}>High</Text></View>
+      </View>
+
+      <View style={styles.divider} />
+
+      <Text style={{ color: '#999', fontStyle: 'italic' }}>
+        Settings functionality coming soon.
+      </Text>
+    </View>
   );
 }
 
