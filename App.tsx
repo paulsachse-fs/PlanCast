@@ -5,6 +5,17 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
+import * as Notifications from 'expo-notifications';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 // Types
 type Activity = 'Outdoor' | 'Indoor' | 'Commute' | 'Other';
@@ -40,6 +51,7 @@ export default function App() {
   useEffect(() => {
     loadPlans();
     loadLocations();
+    Notifications.requestPermissionsAsync();
   }, []);
 
   const loadPlans = async () => {
@@ -64,8 +76,32 @@ export default function App() {
     setLocations(updated);
   };
 
-  const addPlan = (plan: Plan) => {
+  const scheduleReminders = async (plan: Plan) => {
+    const planTime = new Date(`${plan.date}T${plan.time}`).getTime();
+    const now = Date.now();
+
+    // 24 hours before
+    const t24 = planTime - 24 * 60 * 60 * 1000;
+    if (t24 > now) {
+      await Notifications.scheduleNotificationAsync({
+        content: { title: 'Plan Tomorrow', body: `Check the forecast for "${plan.title}"` },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: new Date(t24) },
+      });
+    }
+
+    // 2 hours before
+    const t2 = planTime - 2 * 60 * 60 * 1000;
+    if (t2 > now) {
+      await Notifications.scheduleNotificationAsync({
+        content: { title: 'Plan Soon', body: `"${plan.title}" is in 2 hours. Review the PDS!` },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: new Date(t2) },
+      });
+    }
+  };
+
+  const addPlan = async (plan: Plan) => {
     savePlans([...plans, plan]);
+    await scheduleReminders(plan);
     setScreen('list');
   };
 
