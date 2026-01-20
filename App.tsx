@@ -6,6 +6,9 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
+import { InsightsScreen } from './screens/InsightsScreen';
+
+// Notification settings
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -54,21 +57,25 @@ export default function App() {
     Notifications.requestPermissionsAsync();
   }, []);
 
+  // Load saved plans
   const loadPlans = async () => {
     const data = await AsyncStorage.getItem('plans');
     if (data) setPlans(JSON.parse(data));
   };
 
+  // Save plans
   const savePlans = async (newPlans: Plan[]) => {
     await AsyncStorage.setItem('plans', JSON.stringify(newPlans));
     setPlans(newPlans);
   };
 
+  // Load saved locations
   const loadLocations = async () => {
     const data = await AsyncStorage.getItem('locations');
     if (data) setLocations(JSON.parse(data));
   };
 
+  // Add a new location
   const addLocation = async (name: string, lat: number, lon: number) => {
     if (locations.some(l => l.lat === lat && l.lon === lon)) return;
     const updated = [...locations, { id: Date.now().toString(), name, lat, lon }];
@@ -76,11 +83,19 @@ export default function App() {
     setLocations(updated);
   };
 
+  // Schedule reminder notifications for plan
   const scheduleReminders = async (plan: Plan) => {
+    // Time to milliseconds
     const planTime = new Date(`${plan.date}T${plan.time}`).getTime();
     const now = Date.now();
 
-    // 24 hours before
+    // 3 second test reminder
+    await Notifications.scheduleNotificationAsync({
+      content: { title: 'Test Reminder', body: `Plan "${plan.title}" was created!` },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: new Date(now + 3000) },
+    });
+
+    // 24 hours reminder to check forecast
     const t24 = planTime - 24 * 60 * 60 * 1000;
     if (t24 > now) {
       await Notifications.scheduleNotificationAsync({
@@ -89,7 +104,7 @@ export default function App() {
       });
     }
 
-    // 2 hours before
+    // 2 hour reminder
     const t2 = planTime - 2 * 60 * 60 * 1000;
     if (t2 > now) {
       await Notifications.scheduleNotificationAsync({
@@ -128,7 +143,7 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       {tab === 'Plans' && <PlansList plans={plans} onAdd={() => setScreen('new')} onSelect={openDetails} />}
       {tab === 'Locations' && <LocationsScreen locations={locations} />}
-      {tab === 'Insights' && <View style={{ flex: 1 }}><Text style={styles.title}>Insights</Text></View>}
+      {tab === 'Insights' && <InsightsScreen />}
       {tab === 'Settings' && <SettingsScreen />}
 
       <View style={styles.tabBar}>
@@ -173,6 +188,7 @@ function PlansList({ plans, onAdd, onSelect }: {
     fetchWeather();
   }, [nextPlan?.id]);
 
+  // Calculate disruption score from weather data
   const calcScore = (w: Weather) => {
     const pts = w.rain * 8 + w.wind * 4 + Math.abs(w.temp - 20);
     return Math.min(100, Math.max(0, Math.round(pts)));
@@ -232,6 +248,7 @@ function NewPlan({ onSave, onBack, addLocation }: {
   const activities: Activity[] = ['Outdoor', 'Indoor', 'Commute', 'Other'];
   const importances: Importance[] = ['Low', 'Medium', 'High'];
 
+  // Get users current GPS coordinates
   const useCurrentLocation = async () => {
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
@@ -243,6 +260,7 @@ function NewPlan({ onSave, onBack, addLocation }: {
     setLon(location.coords.longitude.toFixed(4));
   };
 
+  // save new plan
   const handleSave = () => {
     if (!title.trim()) return;
     const parsedLat = parseFloat(lat) || 28.6;
@@ -322,6 +340,7 @@ function PlanDetails({ plan, onBack, onDelete }: { plan: Plan; onBack: () => voi
     fetchWeather();
   }, []);
 
+  // Fetch weather data
   const fetchWeather = async () => {
     try {
       const url = `https://api.open-meteo.com/v1/forecast?latitude=${plan.lat}&longitude=${plan.lon}&hourly=temperature_2m,precipitation,wind_speed_10m&forecast_days=1`;
@@ -354,12 +373,14 @@ function PlanDetails({ plan, onBack, onDelete }: { plan: Plan; onBack: () => voi
     };
   };
 
+  // Convert score to guidance
   const getGuidance = (score: number) => {
     if (score <= 33) return { text: 'Keep', color: '#22c55e' };
     if (score <= 66) return { text: 'Adjust', color: '#f97316' };
     return { text: 'Reschedule', color: '#ef4444' };
   };
 
+  // Explanation of the score
   const getExplanation = (w: Weather, s: {rain: number, wind: number, temp: number}) => {
     const totalPoints = s.rain + s.wind + s.temp;
 
