@@ -1,0 +1,30 @@
+import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { SavedLocation } from '../App';
+
+// Locations Screen
+export function LocationsScreen({ locations }: { locations: SavedLocation[] }) {
+  return (
+    <View style={{ flex: 1, padding: 20 }}>
+      <Text style={styles.title}>Saved Locations</Text>
+      <FlatList
+        data={locations}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.planCard}>
+            <Text style={styles.planTitle}>{item.name || 'Unnamed'}</Text>
+            <Text style={styles.planSub}>{item.lat}, {item.lon}</Text>
+          </View>
+        )}
+        ListEmptyComponent={<Text style={styles.empty}>No saved locations yet.</Text>}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
+  planCard: { backgroundColor: '#888', padding: 12, borderRadius: 8, marginBottom: 8 },
+  planTitle: { fontSize: 18, fontWeight: '600' },
+  planSub: { color: '#666', marginTop: 4 },
+  empty: { color: '#999', textAlign: 'center', marginTop: 40 },
+});
