@@ -83,6 +83,20 @@ export default function App() {
     setLocations(updated);
   };
 
+  // Delete a location
+  const deleteLocation = async (id: string) => {
+    const updated = locations.filter(l => l.id !== id);
+    await AsyncStorage.setItem('locations', JSON.stringify(updated));
+    setLocations(updated);
+  };
+
+  // Edit a location name
+  const editLocation = async (id: string, name: string) => {
+    const updated = locations.map(l => l.id === id ? { ...l, name } : l);
+    await AsyncStorage.setItem('locations', JSON.stringify(updated));
+    setLocations(updated);
+  };
+
   // Schedule reminder notifications for plan
   const scheduleReminders = async (plan: Plan) => {
     // Time to milliseconds
@@ -132,7 +146,7 @@ export default function App() {
 
   if (tab === 'Plans') {
     if (screen === 'new') {
-      return <NewPlan onSave={addPlan} onBack={() => setScreen('list')} addLocation={addLocation} />;
+      return <NewPlan onSave={addPlan} onBack={() => setScreen('list')} addLocation={addLocation} savedLocations={locations} />;
     }
     if (screen === 'details' && selectedPlan) {
       return <PlanDetails plan={selectedPlan} onBack={() => setScreen('list')} onDelete={deletePlan} />;
@@ -142,7 +156,7 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       {tab === 'Plans' && <PlansList plans={plans} onAdd={() => setScreen('new')} onSelect={openDetails} />}
-      {tab === 'Locations' && <LocationsScreen locations={locations} />}
+      {tab === 'Locations' && <LocationsScreen locations={locations} onDelete={deleteLocation} onEdit={editLocation} />}
       {tab === 'Insights' && <InsightsScreen />}
       {tab === 'Settings' && <SettingsScreen />}
 

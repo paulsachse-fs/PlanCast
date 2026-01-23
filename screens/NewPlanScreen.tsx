@@ -4,20 +4,20 @@ import {
   StyleSheet, SafeAreaView, Alert
 } from 'react-native';
 import * as Location from 'expo-location';
-import { Plan, Activity, Importance } from '../App';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { Plan, Activity, Importance, SavedLocation } from '../App';
 
 // New Plan Screen
-export function NewPlan({ onSave, onBack, addLocation }: {
+export function NewPlan({ onSave, onBack, addLocation, savedLocations }: {
   onSave: (p: Plan) => void;
   onBack: () => void;
   addLocation: (name: string, lat: number, lon: number) => void;
+  savedLocations: SavedLocation[];
 }) {
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('2026-03-15');
   const [time, setTime] = useState('14:00');
-  const [lat, setLat] = useState('28.6');
-  const [lon, setLon] = useState('81.3');
-  const [locationName, setLocationName] = useState('');
+  const [location, setLocation] = useState({ lat: 28.6, lon: 81.3, name: '' });
   const [activity, setActivity] = useState<Activity>('Outdoor');
   const [importance, setImportance] = useState<Importance>('Medium');
 
@@ -31,17 +31,40 @@ export function NewPlan({ onSave, onBack, addLocation }: {
       Alert.alert('Permission denied');
       return;
     }
-    const location = await Location.getCurrentPositionAsync({});
-    setLat(location.coords.latitude.toFixed(4));
-    setLon(location.coords.longitude.toFixed(4));
+    const loc = await Location.getCurrentPositionAsync({});
+    setLocation({
+      lat: loc.coords.latitude,
+      lon: loc.coords.longitude,
+      name: 'Current Location',
+    });
   };
 
-  // save new plan
+  // Pick from saved locations
+  const pickSavedLocation = () => {
+    if (savedLocations.length === 0) {
+      Alert.alert('No saved locations');
+      return;
+    }
+    // Show alert with saved locations
+    Alert.alert(
+      'Saved Locations',
+      'Pick a location',
+      [
+        // Turn saved locations into buttons
+        ...savedLocations.map(loc => ({
+          text: loc.name,
+          onPress: () => setLocation({ lat: loc.lat, lon: loc.lon, name: loc.name }),
+        })),
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
+  };
+
+  // Save new plan
   const handleSave = () => {
     if (!title.trim()) return;
-    const parsedLat = parseFloat(lat) || 28.6;
-    const parsedLon = parseFloat(lon) || 81.3;
-    addLocation(locationName.trim() || 'Unnamed', parsedLat, parsedLon);
+    // Save this location for future use (skip dupes)
+    addLocation(location.name || 'Unnamed', location.lat, location.lon);
     onSave({
       id: Date.now().toString(),
       title: title.trim(),
@@ -49,9 +72,9 @@ export function NewPlan({ onSave, onBack, addLocation }: {
       time,
       activity,
       importance,
-      lat: parsedLat,
-      lon: parsedLon,
-      locationName: locationName.trim() || undefined,
+      lat: location.lat,
+      lon: location.lon,
+      locationName: location.name || undefined,
     });
   };
 
@@ -69,17 +92,50 @@ export function NewPlan({ onSave, onBack, addLocation }: {
       <Text style={styles.label}>Time (HH:MM)</Text>
       <TextInput style={styles.input} value={time} onChangeText={setTime} />
 
-      <Text style={styles.label}>Location Name (optional)</Text>
-      <TextInput style={styles.input} value={locationName} onChangeText={setLocationName} placeholder="e.g., Central Park" />
+      <Text style={styles.label}>Location Name</Text>
+      <TextInput
+        style={styles.input}
+        value={location.name}
+        onChangeText={(text) => setLocation({ ...location, name: text })}
+        placeholder="e.g., Home, Work, Gym"
+      />
 
-      <Text style={styles.label}>Location (Lat / Lon)</Text>
+      <Text style={styles.label}>Address</Text>
+      {/* Google Places search box*/}
+      <GooglePlacesAutocomplete
+        placeholder="Search for a place..."
+        // When user taps result grab lat/lon
+        onPress={(data, details) => {
+          if (details) {
+            setLocation((prev) => ({
+              lat: details.geometry.location.lat,
+              lon: details.geometry.location.lng,
+              name: prev.name || data.description,
+            }));
+          }
+        }}
+        // API key stored in .env
+        query={{ key: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY, language: 'en' }}
+        // gets lat/lon coordinates
+        fetchDetails={true}
+        textInputProps={{ autoCorrect: false, autoCapitalize: 'none' }}
+        styles={{
+          container: { flex: 0 },
+          textInput: styles.input,
+          listView: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#ccc', borderRadius: 8 },
+        }}
+      />
       <View style={styles.row}>
-        <TextInput style={[styles.input, { flex: 1, marginRight: 8 }]} value={lat} onChangeText={setLat} keyboardType="numeric" />
-        <TextInput style={[styles.input, { flex: 1 }]} value={lon} onChangeText={setLon} keyboardType="numeric" />
+        <TouchableOpacity onPress={useCurrentLocation} style={[styles.smallBtn, { backgroundColor: '#6b7280' }]}>
+          <Text style={styles.smallBtnText}>Current Location</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={pickSavedLocation} style={[styles.smallBtn, { backgroundColor: '#6b7280' }]}>
+          <Text style={styles.smallBtnText}>Saved Locations</Text>
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity onPress={useCurrentLocation} style={[styles.btn, { marginTop: 8 }]}>
-        <Text style={styles.btnText}>Use Current Location</Text>
-      </TouchableOpacity>
+      {location.lat !== 28.6 || location.lon !== 81.3 ? (
+        <Text style={{ color: '#22c55e', marginTop: 4 }}>✓ Location set ({location.lat.toFixed(2)}, {location.lon.toFixed(2)})</Text>
+      ) : null}
 
       <Text style={styles.label}>Activity Type</Text>
       <View style={styles.row}>
@@ -118,5 +174,7 @@ const styles = StyleSheet.create({
   segTextActive: { color: '#fff' },
   btn: { backgroundColor: '#3b82f6', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 16 },
   btnText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  smallBtn: { flex: 1, backgroundColor: '#6b7280', padding: 10, borderRadius: 8, alignItems: 'center' },
+  smallBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
   back: { color: '#3b82f6', fontSize: 16, marginBottom: 8 },
 });

@@ -1,8 +1,18 @@
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { SavedLocation } from '../App';
 
 // Locations Screen
-export function LocationsScreen({ locations }: { locations: SavedLocation[] }) {
+export function LocationsScreen({ locations, onDelete, onEdit }: { locations: SavedLocation[]; onDelete: (id: string) => void; onEdit: (id: string, name: string) => void }) {
+  // Edit/delete options when tapped
+  const handlePress = (item: SavedLocation) => {
+    Alert.alert(item.name || 'Location', 'What would you like to do?', [
+      // Shows text input to rename location
+      { text: 'Edit Name', onPress: () => Alert.prompt('Rename', 'Enter new name:', name => name && onEdit(item.id, name), 'plain-text', item.name) },
+      { text: 'Delete', style: 'destructive', onPress: () => onDelete(item.id) },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+
   return (
     <View style={{ flex: 1, padding: 20 }}>
       <Text style={styles.title}>Saved Locations</Text>
@@ -10,10 +20,12 @@ export function LocationsScreen({ locations }: { locations: SavedLocation[] }) {
         data={locations}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
-          <View style={styles.planCard}>
-            <Text style={styles.planTitle}>{item.name || 'Unnamed'}</Text>
-            <Text style={styles.planSub}>{item.lat}, {item.lon}</Text>
-          </View>
+          <TouchableOpacity onPress={() => handlePress(item)}>
+            <View style={styles.planCard}>
+              <Text style={styles.planTitle}>{item.name || 'Unnamed'}</Text>
+              <Text style={styles.planSub}>{item.lat}, {item.lon}</Text>
+            </View>
+          </TouchableOpacity>
         )}
         ListEmptyComponent={<Text style={styles.empty}>No saved locations yet.</Text>}
       />
