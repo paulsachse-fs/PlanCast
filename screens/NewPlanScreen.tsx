@@ -79,9 +79,9 @@ export function NewPlan({ onSave, onBack, addLocation, savedLocations }: {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <TouchableOpacity onPress={onBack}><Text style={styles.back}>← Back</Text></TouchableOpacity>
-      <Text style={styles.title}>New Plan</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <View style={styles.container}>
+        <Text style={styles.title}>New Plan</Text>
 
       <Text style={styles.label}>Title</Text>
       <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="e.g., Beach Day" />
@@ -158,12 +158,21 @@ export function NewPlan({ onSave, onBack, addLocation, savedLocations }: {
       <TouchableOpacity style={styles.btn} onPress={handleSave}>
         <Text style={styles.btnText}>Save Plan</Text>
       </TouchableOpacity>
+      <TouchableOpacity style={styles.cancelBtn} onPress={() => {
+        Alert.alert('Discard Plan?', 'Are you sure you want to discard this plan?', [
+          { text: 'Keep Editing', style: 'cancel' },
+          { text: 'Discard', style: 'destructive', onPress: onBack },
+        ]);
+      }}>
+        <Text style={styles.cancelBtnText}>Cancel</Text>
+      </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
+  container: { flex: 1, padding: 20 },
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
   label: { fontSize: 14, fontWeight: '600', marginTop: 12, marginBottom: 4 },
   input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, fontSize: 16 },
@@ -176,5 +185,6 @@ const styles = StyleSheet.create({
   btnText: { color: '#fff', fontWeight: '600', fontSize: 16 },
   smallBtn: { flex: 1, backgroundColor: '#6b7280', padding: 10, borderRadius: 8, alignItems: 'center' },
   smallBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-  back: { color: '#3b82f6', fontSize: 16, marginBottom: 8 },
+  cancelBtn: { padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 8 },
+  cancelBtnText: { color: '#ef4444', fontWeight: '600', fontSize: 16 },
 });
