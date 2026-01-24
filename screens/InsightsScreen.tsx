@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, StyleSheet, FlatList } from 'react-native';
 import * as Location from 'expo-location';
+import { Plan } from '../App';
 
 type Weather = {
   temp: number;
@@ -8,8 +9,10 @@ type Weather = {
   wind: number;
 };
 
-// Shows 5 day forecast trend
-export function InsightsScreen() {
+export function InsightsScreen({ plans }: { plans: Plan[] }) {
+  // Filter past plans sorted by date
+  const now = new Date();
+  const pastPlans = plans.filter(plan => new Date(`${plan.date}T${plan.time}`) < now).sort((a, b) => b.date.localeCompare(a.date));
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [loading, setLoading] = useState(false);
   const [forecast, setForecast] = useState<{ day: string; score: number; guidance: string; color: string }[]>([]);
@@ -87,7 +90,7 @@ export function InsightsScreen() {
   }, [mode]);
 
   return (
-    <View style={{ flex: 1, padding: 20 }}>
+    <View style={{ flex: 1, paddingTop: 20, paddingHorizontal: 20 }}>
       <Text style={styles.title}>Insights</Text>
       <Text style={styles.label}>Scoring Mode</Text>
       <View style={styles.row}>
@@ -100,7 +103,7 @@ export function InsightsScreen() {
 
       {!location && (
         <TouchableOpacity style={styles.btn} onPress={useCurrentLocation}>
-          <Text style={styles.btnText}>{loading ? 'Loading...' : 'Use Current Location'}</Text>
+          <Text style={styles.btnText}>{loading ? 'Loading...' : 'Get Current Location PDS Forecast'}</Text>
         </TouchableOpacity>
       )}
 
@@ -120,6 +123,30 @@ export function InsightsScreen() {
           ))}
         </View>
       )}
+
+      {/* Past Plans Section */}
+      <View style={styles.pastSection}>
+        <Text style={styles.pastTitle}>Past Plans</Text>
+        <FlatList
+          data={pastPlans}
+          keyExtractor={item => item.id}
+          renderItem={({ item }) => {
+            // Pick score based on current mode toggle
+            const score = mode === 'Rule' ? item.savedRuleScore : item.savedModelScore;
+            const scoreColor = score === undefined ? '#999' : score <= 33 ? '#22c55e' : score <= 66 ? '#f97316' : '#ef4444';
+            return (
+              <View style={styles.pastCard}>
+                <View>
+                  <Text style={styles.pastCardTitle}>{item.title}</Text>
+                  <Text style={styles.pastCardSub}>{item.date}</Text>
+                </View>
+                <Text style={[styles.pastCardScore, { color: scoreColor }]}>{score ?? '—'}</Text>
+              </View>
+            );
+          }}
+          ListEmptyComponent={<Text style={styles.empty}>No past plans yet.</Text>}
+        />
+      </View>
     </View>
   );
 }
@@ -134,4 +161,11 @@ const styles = StyleSheet.create({
   segTextActive: { color: '#fff' },
   btn: { backgroundColor: '#3b82f6', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 16 },
   btnText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  pastSection: { flex: 1, backgroundColor: '#eee', borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 16, marginTop: 16, borderWidth: 1, borderColor: '#ccc', borderBottomWidth: 0 },
+  pastTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' },
+  pastCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#ddd', padding: 12, borderRadius: 8, marginBottom: 8, borderWidth: 1, borderColor: '#999' },
+  pastCardTitle: { fontSize: 18, fontWeight: '600' },
+  pastCardSub: { color: '#666', marginTop: 4 },
+  pastCardScore: { fontSize: 24, fontWeight: 'bold' },
+  empty: { color: '#999', textAlign: 'center', marginTop: 20 },
 });

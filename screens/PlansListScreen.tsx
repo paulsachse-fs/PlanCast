@@ -10,10 +10,10 @@ export function PlansList({ plans, onAdd, onSelect }: {
 }) {
   const [weather, setWeather] = useState<Weather | null>(null);
 
-  // Sort plans by date and get next
-  const sortedPlans = [...plans].sort((a, b) =>
-    `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`)
-  );
+  // Only show future plans
+  const now = new Date();
+  const upcomingPlans = plans.filter(plan => new Date(`${plan.date}T${plan.time}`) >= now);
+  const sortedPlans = [...upcomingPlans].sort((a, b) => `${a.date}${a.time}`.localeCompare(`${b.date}${b.time}`));
   const nextPlan = sortedPlans[0];
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export function PlansList({ plans, onAdd, onSelect }: {
   const scoreColor = score === null ? '#999' : score <= 33 ? '#22c55e' : score <= 66 ? '#f97316' : '#ef4444';
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, paddingTop: 20, paddingHorizontal: 20 }}>
       {/* PDS Circle */}
       <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center' }}>
         <View style={styles.pdsCircle}>
@@ -80,9 +80,9 @@ const styles = StyleSheet.create({
   pdsLabel: { fontSize: 24, fontWeight: 'bold', color: '#333' },
   pdsScore: { fontSize: 64, fontWeight: 'bold' },
   pdsSub: { fontSize: 14, color: '#666', textAlign: 'center' },
-  upcomingSection: { flex: 1, backgroundColor: '#eee', borderRadius: 16, padding: 16, marginTop: 16 },
+  upcomingSection: { flex: 1, backgroundColor: '#eee', borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 16, marginTop: 16, borderWidth: 1, borderColor: '#ccc', borderBottomWidth: 0 },
   upcomingTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' },
-  planCard: { backgroundColor: '#888', padding: 12, borderRadius: 8, marginBottom: 8 },
+  planCard: { backgroundColor: '#ddd', padding: 12, borderRadius: 8, marginBottom: 8, borderWidth: 1, borderColor: '#999' },
   planTitle: { fontSize: 18, fontWeight: '600' },
   planSub: { color: '#666', marginTop: 4 },
   empty: { color: '#999', textAlign: 'center', marginTop: 40 },

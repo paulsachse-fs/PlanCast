@@ -34,6 +34,8 @@ export type Plan = {
   lat: number;
   lon: number;
   locationName?: string;
+  savedRuleScore?: number;
+  savedModelScore?: number;
 };
 
 export type Weather = {
@@ -56,6 +58,36 @@ export default function App() {
     loadLocations();
     Notifications.requestPermissionsAsync();
   }, []);
+
+  // Save scores for historical record
+  useEffect(() => {
+    const savePastPlanScores = async () => {
+      const now = new Date();
+      const pastPlansWithoutScores = plans.filter(plan => {
+        const planDateTime = new Date(`${plan.date}T${plan.time}`);
+        return planDateTime < now && plan.savedRuleScore === undefined;
+      });
+      if (pastPlansWithoutScores.length === 0) return;
+
+      const updatedPlans = [...plans];
+      for (const plan of pastPlansWithoutScores) {
+        try {
+          const url = `https://api.open-meteo.com/v1/forecast?latitude=${plan.lat}&longitude=${plan.lon}&hourly=temperature_2m,precipitation,wind_speed_10m&start_date=${plan.date}&end_date=${plan.date}`;
+          const response = await fetch(url);
+          const data = await response.json();
+          const temp = data.hourly.temperature_2m[12];
+          const rain = data.hourly.precipitation[12];
+          const wind = data.hourly.wind_speed_10m[12] / 3.6;
+          const ruleScore = Math.min(100, Math.max(0, Math.round(rain * 8 + wind * 4 + Math.abs(temp - 20))));
+          const modelScore = Math.min(100, Math.max(0, Math.round(rain * 5 + wind * 6 + Math.abs(temp - 20) * 2)));
+          const index = updatedPlans.findIndex(p => p.id === plan.id);
+          updatedPlans[index] = { ...updatedPlans[index], savedRuleScore: ruleScore, savedModelScore: modelScore };
+        } catch {}
+      }
+      savePlans(updatedPlans);
+    };
+    if (plans.length > 0) savePastPlanScores();
+  }, [plans.length]);
 
   // Load saved plans
   const loadPlans = async () => {
@@ -157,7 +189,7 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       {tab === 'Plans' && <PlansList plans={plans} onAdd={() => setScreen('new')} onSelect={openDetails} />}
       {tab === 'Locations' && <LocationsScreen locations={locations} onDelete={deleteLocation} onEdit={editLocation} />}
-      {tab === 'Insights' && <InsightsScreen />}
+      {tab === 'Insights' && <InsightsScreen plans={plans} />}
       {tab === 'Settings' && <SettingsScreen />}
 
       <View style={styles.tabBar}>
