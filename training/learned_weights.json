@@ -1,0 +1,10 @@
+{
+  "description": "Weather disruption weights based on historical data analysis",
+  "generated": "2026-01-25",
+  "data_sources": "8 US cities, 60 days each",
+  "weights": {
+    "rain": 7.56,
+    "wind": 1.71,
+    "temp": 3.73
+  }
+}

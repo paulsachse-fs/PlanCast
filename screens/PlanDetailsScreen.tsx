@@ -31,9 +31,9 @@ export function PlanDetails({ plan, onBack, onDelete }: { plan: Plan; onBack: ()
 
   // Calculate PDS
   const calcScore = (w: Weather, m: 'Rule' | 'Model') => {
-    const rainW = m === 'Rule' ? 8 : 5;
-    const windW = m === 'Rule' ? 4 : 6;
-    const tempW = m === 'Rule' ? 1 : 2;
+    const rainW = m === 'Rule' ? 6 : 7.56;
+    const windW = m === 'Rule' ? 4 : 1.71;
+    const tempW = m === 'Rule' ? 3 : 3.73;
     const rainPts = w.rain * rainW;
     const windPts = w.wind * windW;
     const tempPts = Math.abs(w.temp - 20) * tempW;

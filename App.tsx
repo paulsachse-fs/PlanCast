@@ -78,8 +78,8 @@ export default function App() {
           const temp = data.hourly.temperature_2m[12];
           const rain = data.hourly.precipitation[12];
           const wind = data.hourly.wind_speed_10m[12] / 3.6;
-          const ruleScore = Math.min(100, Math.max(0, Math.round(rain * 8 + wind * 4 + Math.abs(temp - 20))));
-          const modelScore = Math.min(100, Math.max(0, Math.round(rain * 5 + wind * 6 + Math.abs(temp - 20) * 2)));
+          const ruleScore = Math.min(100, Math.max(0, Math.round(rain * 6 + wind * 4 + Math.abs(temp - 20) * 3)));
+          const modelScore = Math.min(100, Math.max(0, Math.round(rain * 7.56 + wind * 1.71 + Math.abs(temp - 20) * 3.73)));
           const index = updatedPlans.findIndex(p => p.id === plan.id);
           updatedPlans[index] = { ...updatedPlans[index], savedRuleScore: ruleScore, savedModelScore: modelScore };
         } catch {}

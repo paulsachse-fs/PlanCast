@@ -20,9 +20,9 @@ export function InsightsScreen({ plans }: { plans: Plan[] }) {
 
   // Calculate disruption score from weather data
   const calcScore = (w: Weather, m: 'Rule' | 'Model') => {
-    const rainW = m === 'Rule' ? 8 : 5;
-    const windW = m === 'Rule' ? 4 : 6;
-    const tempW = m === 'Rule' ? 1 : 2;
+    const rainW = m === 'Rule' ? 6 : 7.56;
+    const windW = m === 'Rule' ? 4 : 1.71;
+    const tempW = m === 'Rule' ? 3 : 3.73;
     const pts = w.rain * rainW + w.wind * windW + Math.abs(w.temp - 20) * tempW;
     return Math.min(100, Math.max(0, Math.round(pts)));
   };
