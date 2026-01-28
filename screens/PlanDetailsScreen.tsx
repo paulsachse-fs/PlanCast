@@ -87,27 +87,47 @@ export function PlanDetails({ plan, onBack, onDelete }: { plan: Plan; onBack: ()
 
   return (
     <SafeAreaView style={styles.container}>
-      <TouchableOpacity onPress={onBack}><Text style={styles.back}>← Back</Text></TouchableOpacity>
+      {/* Header */}
+      <TouchableOpacity onPress={onBack}>
+        <Text style={styles.back}>← Back</Text>
+      </TouchableOpacity>
       <Text style={styles.title}>{plan.title}</Text>
-      <Text style={styles.planSub}>{plan.date} {plan.time}</Text>
-      <Text style={styles.planSub}>{plan.activity} - {plan.importance} importance</Text>
-      <Text style={styles.planSub}>Location: {plan.lat}, {plan.lon}</Text>
-
-      <View style={styles.divider} />
+      <Text style={styles.subtitle}>{plan.date} at {plan.time}</Text>
+      <Text style={styles.subtitle}>{plan.activity} · {plan.importance} importance</Text>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      {!weather && !error ? <Text>Loading weather...</Text> : null}
+      {!weather && !error ? <Text style={styles.loading}>Loading weather...</Text> : null}
 
       {weather && score && guidance && (
         <>
-          <Text style={styles.label}>Forecast (noon)</Text>
-          <Text>Temp: {weather.temp.toFixed(1)}°C</Text>
-          <Text>Rain: {weather.rain.toFixed(1)} mm</Text>
-          <Text>Wind: {weather.wind.toFixed(1)} m/s</Text>
+          {/* Weather Card */}
+          <View style={styles.card}>
+            <Text style={styles.cardLabel}>Forecast (noon)</Text>
+            <Text style={styles.cardText}>Temp: {weather.temp.toFixed(1)}°C</Text>
+            <Text style={styles.cardText}>Rain: {weather.rain.toFixed(1)} mm</Text>
+            <Text style={styles.cardText}>Wind: {weather.wind.toFixed(1)} m/s</Text>
+          </View>
 
-          <View style={styles.divider} />
+          {/* Score Card */}
+          <View style={styles.card}>
+            <Text style={styles.cardLabel}>Plan Disruption Score</Text>
+            <Text style={[styles.score, { color: guidance.color }]}>{score.total}</Text>
 
-          <Text style={styles.label}>Scoring Mode</Text>
+            <Text style={styles.cardLabel}>Breakdown</Text>
+            <Text style={styles.cardText}>Rain: +{score.rain} pts · Wind: +{score.wind} pts · Temp: +{score.temp} pts</Text>
+
+            <Text style={styles.cardLabel}>Why this score?</Text>
+            <Text style={styles.explanation}>{getExplanation(weather, score)}</Text>
+
+            {/* Guidance */}
+            <View style={[styles.badge, { backgroundColor: guidance.color + '20' }]}>
+              <View style={[styles.dot, { backgroundColor: guidance.color }]} />
+              <Text style={[styles.badgeText, { color: guidance.color }]}>{guidance.text}</Text>
+            </View>
+          </View>
+
+          {/* Mode Toggle */}
+          <Text style={styles.modeLabel}>Scoring Mode</Text>
           <View style={styles.row}>
             {(['Rule', 'Model'] as const).map(m => (
               <TouchableOpacity key={m} style={[styles.seg, mode === m && styles.segActive]} onPress={() => setMode(m)}>
@@ -115,47 +135,38 @@ export function PlanDetails({ plan, onBack, onDelete }: { plan: Plan; onBack: ()
               </TouchableOpacity>
             ))}
           </View>
-
-          <Text style={styles.label}>Plan Disruption Score</Text>
-          <Text style={[styles.score, { color: guidance.color }]}>{score.total}</Text>
-
-          <Text style={styles.label}>Breakdown</Text>
-          <Text>Rain: +{score.rain} pts</Text>
-          <Text>Wind: +{score.wind} pts</Text>
-          <Text>Temp: +{score.temp} pts</Text>
-
-          <Text style={styles.label}>Why this score?</Text>
-          <Text style={{ color: '#666', marginBottom: 8 }}>{getExplanation(weather, score)}</Text>
-
-          <View style={styles.divider} />
-
-          <Text style={styles.label}>Guidance</Text>
-          <Text style={[styles.guidance, { backgroundColor: guidance.color }]}>{guidance.text}</Text>
         </>
       )}
 
-      <TouchableOpacity style={[styles.btn, { backgroundColor: '#ef4444', marginTop: 20 }]} onPress={() => onDelete(plan.id)}>
-        <Text style={styles.btnText}>Delete Plan</Text>
+      {/* Delete Button */}
+      <TouchableOpacity style={styles.deleteBtn} onPress={() => onDelete(plan.id)}>
+        <Text style={styles.deleteBtnText}>Delete Plan</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
-  label: { fontSize: 14, fontWeight: '600', marginTop: 12, marginBottom: 4 },
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  seg: { paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: '#ccc', borderRadius: 8 },
-  segActive: { backgroundColor: '#3b82f6', borderColor: '#3b82f6' },
-  segText: { color: '#333' },
-  segTextActive: { color: '#fff' },
-  btn: { backgroundColor: '#3b82f6', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 16 },
-  btnText: { color: '#fff', fontWeight: '600', fontSize: 16 },
-  back: { color: '#3b82f6', fontSize: 16, marginBottom: 8 },
-  planSub: { color: '#666', marginTop: 4 },
-  divider: { height: 1, backgroundColor: '#eee', marginVertical: 16 },
+  container: { flex: 1, padding: 24, backgroundColor: '#f8fafc' },
+  back: { color: '#3b82f6', fontSize: 16, marginBottom: 12, paddingHorizontal: 8 },
+  title: { fontSize: 26, fontWeight: 'bold', color: '#1e293b', marginBottom: 4, paddingHorizontal: 8 },
+  subtitle: { fontSize: 15, color: '#64748b', marginBottom: 2, paddingHorizontal: 8 },
+  loading: { color: '#64748b', marginTop: 20 },
+  error: { color: '#ef4444', marginTop: 20 },
+  card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, marginTop: 16 },
+  cardLabel: { fontSize: 13, fontWeight: '600', color: '#64748b', marginTop: 8, marginBottom: 4 },
+  cardText: { fontSize: 15, color: '#334155', marginBottom: 2 },
+  explanation: { fontSize: 14, color: '#64748b', marginBottom: 12 },
   score: { fontSize: 48, fontWeight: 'bold' },
-  guidance: { color: '#fff', padding: 12, borderRadius: 8, textAlign: 'center', fontWeight: '600', fontSize: 18, overflow: 'hidden' },
-  error: { color: '#ef4444' },
+  badge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16 },
+  dot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
+  badgeText: { fontSize: 14, fontWeight: '600' },
+  modeLabel: { fontSize: 13, fontWeight: '600', color: '#64748b', marginTop: 20, marginBottom: 8, paddingHorizontal: 8 },
+  row: { flexDirection: 'row', gap: 8, paddingHorizontal: 8 },
+  seg: { paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 8, backgroundColor: '#fff' },
+  segActive: { backgroundColor: '#3b82f6', borderColor: '#3b82f6' },
+  segText: { color: '#475569' },
+  segTextActive: { color: '#fff' },
+  deleteBtn: { backgroundColor: '#fee2e2', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 'auto' },
+  deleteBtnText: { color: '#dc2626', fontWeight: '600', fontSize: 16 },
 });

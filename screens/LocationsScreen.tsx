@@ -35,7 +35,7 @@ export function LocationsScreen({ locations, onDelete, onEdit }: { locations: Sa
 
 const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
-  planCard: { backgroundColor: '#888', padding: 12, borderRadius: 8, marginBottom: 8 },
+  planCard: { backgroundColor: '#ddd', padding: 12, borderRadius: 8, marginBottom: 8, borderWidth: 1, borderColor: '#999' },
   planTitle: { fontSize: 18, fontWeight: '600' },
   planSub: { color: '#666', marginTop: 4 },
   empty: { color: '#999', textAlign: 'center', marginTop: 40 },
