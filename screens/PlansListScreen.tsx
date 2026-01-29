@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
-import { Plan, Weather } from '../App';
+import { Plan, Weather, Settings } from '../App';
 
-// Plans List Screen
-export function PlansList({ plans, onAdd, onSelect }: {
+export function PlansList({ plans, onAdd, onSelect, settings }: {
   plans: Plan[];
   onAdd: () => void;
   onSelect: (plan: Plan) => void;
+  settings: Settings;
 }) {
   const [weather, setWeather] = useState<Weather | null>(null);
+  const [mode, setMode] = useState<'Rule' | 'Model'>('Rule');
 
   // Only show future plans
   const now = new Date();
@@ -35,15 +36,27 @@ export function PlansList({ plans, onAdd, onSelect }: {
 
   // Calculate disruption score from weather data
   const calcScore = (w: Weather) => {
-    const pts = w.rain * 8 + w.wind * 4 + Math.abs(w.temp - 20);
+    const rainW = mode === 'Rule' ? 6 : 7.56;
+    const windW = mode === 'Rule' ? 4 : 1.71;
+    const tempW = mode === 'Rule' ? 3 : 3.73;
+    const pts = w.rain * rainW + w.wind * windW + Math.abs(w.temp - 20) * tempW;
     return Math.min(100, Math.max(0, Math.round(pts)));
   };
 
   const score = weather ? calcScore(weather) : null;
-  const scoreColor = score === null ? '#999' : score <= 33 ? '#22c55e' : score <= 66 ? '#f97316' : '#ef4444';
+  const t = settings.riskTolerance === 'Low' ? [25, 50] : settings.riskTolerance === 'High' ? [45, 75] : [33, 66];
+  const scoreColor = score === null ? '#999' : score <= t[0] ? '#22c55e' : score <= t[1] ? '#f97316' : '#ef4444';
 
   return (
     <View style={{ flex: 1, paddingTop: 20, paddingHorizontal: 20 }}>
+      <View style={styles.modeRow}>
+        {(['Rule', 'Model'] as const).map(m => (
+          <TouchableOpacity key={m} style={[styles.seg, mode === m && styles.segActive]} onPress={() => setMode(m)}>
+            <Text style={mode === m ? styles.segTextActive : styles.segText}>{m}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       {/* PDS Circle */}
       <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center' }}>
         <View style={styles.pdsCircle}>
@@ -88,4 +101,9 @@ const styles = StyleSheet.create({
   empty: { color: '#999', textAlign: 'center', marginTop: 40 },
   addBtn: { position: 'absolute', bottom: 16, right: 16, backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, flexDirection: 'row', alignItems: 'center' },
   addBtnText: { fontSize: 14, fontWeight: '600' },
+  modeRow: { flexDirection: 'row', gap: 8, marginTop: 12, justifyContent: 'center' },
+  seg: { paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: '#ccc', borderRadius: 8 },
+  segActive: { backgroundColor: '#3b82f6', borderColor: '#3b82f6' },
+  segText: { color: '#333' },
+  segTextActive: { color: '#fff' },
 });

@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
-import { Plan, Weather } from '../App';
+import { Plan, Weather, Settings } from '../App';
 
-// Plan Details Screen
-export function PlanDetails({ plan, onBack, onDelete }: { plan: Plan; onBack: () => void; onDelete: (id: string) => void }) {
+export function PlanDetails({ plan, onBack, onDelete, settings }: { plan: Plan; onBack: () => void; onDelete: (id: string) => void; settings: Settings }) {
   const [weather, setWeather] = useState<Weather | null>(null);
   const [error, setError] = useState('');
   const [mode, setMode] = useState<'Rule' | 'Model'>('Rule');
@@ -47,8 +46,9 @@ export function PlanDetails({ plan, onBack, onDelete }: { plan: Plan; onBack: ()
 
   // Convert score to guidance
   const getGuidance = (score: number) => {
-    if (score <= 33) return { text: 'Keep', color: '#22c55e' };
-    if (score <= 66) return { text: 'Adjust', color: '#f97316' };
+    const t = settings.riskTolerance === 'Low' ? [25, 50] : settings.riskTolerance === 'High' ? [45, 75] : [33, 66];
+    if (score <= t[0]) return { text: 'Keep', color: '#22c55e' };
+    if (score <= t[1]) return { text: 'Adjust', color: '#f97316' };
     return { text: 'Reschedule', color: '#ef4444' };
   };
 
@@ -73,7 +73,9 @@ export function PlanDetails({ plan, onBack, onDelete }: { plan: Plan; onBack: ()
     }
 
     if (isWindDominant) {
-      return `Wind (${w.wind.toFixed(1)}m/s) is the main factor.`;
+      const windVal = settings.windUnit === 'kmh' ? (w.wind * 3.6).toFixed(1) : w.wind.toFixed(1);
+      const windLabel = settings.windUnit === 'kmh' ? 'km/h' : 'm/s';
+      return `Wind (${windVal}${windLabel}) is the main factor.`;
     }
 
     if (w.temp < 10) {
@@ -103,9 +105,9 @@ export function PlanDetails({ plan, onBack, onDelete }: { plan: Plan; onBack: ()
           {/* Weather Card */}
           <View style={styles.card}>
             <Text style={styles.cardLabel}>Forecast (noon)</Text>
-            <Text style={styles.cardText}>Temp: {weather.temp.toFixed(1)}°C</Text>
+            <Text style={styles.cardText}>Temp: {settings.tempUnit === 'F' ? (weather.temp * 9/5 + 32).toFixed(1) : weather.temp.toFixed(1)}°{settings.tempUnit}</Text>
             <Text style={styles.cardText}>Rain: {weather.rain.toFixed(1)} mm</Text>
-            <Text style={styles.cardText}>Wind: {weather.wind.toFixed(1)} m/s</Text>
+            <Text style={styles.cardText}>Wind: {settings.windUnit === 'kmh' ? (weather.wind * 3.6).toFixed(1) : weather.wind.toFixed(1)} {settings.windUnit === 'kmh' ? 'km/h' : 'm/s'}</Text>
           </View>
 
           {/* Score Card */}

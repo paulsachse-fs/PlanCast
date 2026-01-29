@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Alert, StyleSheet, FlatList } from 'react-native';
 import * as Location from 'expo-location';
-import { Plan } from '../App';
+import { Plan, Settings } from '../App';
 
 type Weather = {
   temp: number;
@@ -9,7 +9,7 @@ type Weather = {
   wind: number;
 };
 
-export function InsightsScreen({ plans }: { plans: Plan[] }) {
+export function InsightsScreen({ plans, settings }: { plans: Plan[]; settings: Settings }) {
   // Filter past plans sorted by date
   const now = new Date();
   const pastPlans = plans.filter(plan => new Date(`${plan.date}T${plan.time}`) < now).sort((a, b) => b.date.localeCompare(a.date));
@@ -28,8 +28,9 @@ export function InsightsScreen({ plans }: { plans: Plan[] }) {
   };
 
   const getGuidance = (score: number) => {
-    if (score <= 33) return { text: 'Keep', color: '#22c55e' };
-    if (score <= 66) return { text: 'Adjust', color: '#f97316' };
+    const t = settings.riskTolerance === 'Low' ? [25, 50] : settings.riskTolerance === 'High' ? [45, 75] : [33, 66];
+    if (score <= t[0]) return { text: 'Keep', color: '#22c55e' };
+    if (score <= t[1]) return { text: 'Adjust', color: '#f97316' };
     return { text: 'Reschedule', color: '#ef4444' };
   };
 
@@ -133,7 +134,8 @@ export function InsightsScreen({ plans }: { plans: Plan[] }) {
           renderItem={({ item }) => {
             // Pick score based on current mode toggle
             const score = mode === 'Rule' ? item.savedRuleScore : item.savedModelScore;
-            const scoreColor = score === undefined ? '#999' : score <= 33 ? '#22c55e' : score <= 66 ? '#f97316' : '#ef4444';
+            const t = settings.riskTolerance === 'Low' ? [25, 50] : settings.riskTolerance === 'High' ? [45, 75] : [33, 66];
+            const scoreColor = score === undefined ? '#999' : score <= t[0] ? '#22c55e' : score <= t[1] ? '#f97316' : '#ef4444';
             return (
               <View style={styles.pastCard}>
                 <View>

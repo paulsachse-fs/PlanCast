@@ -46,16 +46,26 @@ export type Weather = {
 
 export type SavedLocation = { id: string; name: string; lat: number; lon: number };
 
+export type Settings = {
+  tempUnit: 'C' | 'F';
+  windUnit: 'ms' | 'kmh';
+  riskTolerance: 'Low' | 'Medium' | 'High';
+};
+
+const DEFAULT_SETTINGS: Settings = { tempUnit: 'C', windUnit: 'ms', riskTolerance: 'Medium' };
+
 export default function App() {
   const [screen, setScreen] = useState<'list' | 'new' | 'details'>('list');
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [tab, setTab] = useState<'Plans' | 'Locations' | 'Insights' | 'Settings'>('Plans');
   const [locations, setLocations] = useState<SavedLocation[]>([]);
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
 
   useEffect(() => {
     loadPlans();
     loadLocations();
+    loadSettings();
     Notifications.requestPermissionsAsync();
   }, []);
 
@@ -105,6 +115,16 @@ export default function App() {
   const loadLocations = async () => {
     const data = await AsyncStorage.getItem('locations');
     if (data) setLocations(JSON.parse(data));
+  };
+
+  const loadSettings = async () => {
+    const data = await AsyncStorage.getItem('settings');
+    if (data) setSettings(JSON.parse(data));
+  };
+
+  const saveSettings = async (s: Settings) => {
+    await AsyncStorage.setItem('settings', JSON.stringify(s));
+    setSettings(s);
   };
 
   // Add a new location
@@ -181,16 +201,16 @@ export default function App() {
       return <NewPlan onSave={addPlan} onBack={() => setScreen('list')} addLocation={addLocation} savedLocations={locations} />;
     }
     if (screen === 'details' && selectedPlan) {
-      return <PlanDetails plan={selectedPlan} onBack={() => setScreen('list')} onDelete={deletePlan} />;
+      return <PlanDetails plan={selectedPlan} onBack={() => setScreen('list')} onDelete={deletePlan} settings={settings} />;
     }
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      {tab === 'Plans' && <PlansList plans={plans} onAdd={() => setScreen('new')} onSelect={openDetails} />}
+      {tab === 'Plans' && <PlansList plans={plans} onAdd={() => setScreen('new')} onSelect={openDetails} settings={settings} />}
       {tab === 'Locations' && <LocationsScreen locations={locations} onDelete={deleteLocation} onEdit={editLocation} />}
-      {tab === 'Insights' && <InsightsScreen plans={plans} />}
-      {tab === 'Settings' && <SettingsScreen />}
+      {tab === 'Insights' && <InsightsScreen plans={plans} settings={settings} />}
+      {tab === 'Settings' && <SettingsScreen settings={settings} onSave={saveSettings} />}
 
       <View style={styles.tabBar}>
         {(['Plans', 'Locations', 'Insights', 'Settings'] as const).map(t => (

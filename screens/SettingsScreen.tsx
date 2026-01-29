@@ -1,35 +1,44 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Settings } from '../App';
 
-// Settings Screen
-export function SettingsScreen() {
+export function SettingsScreen({ settings, onSave }: { settings: Settings; onSave: (s: Settings) => void }) {
   return (
     <View style={{ flex: 1, padding: 20 }}>
       <Text style={styles.title}>Settings</Text>
 
       <Text style={styles.label}>Temperature Unit</Text>
       <View style={styles.row}>
-        <View style={[styles.seg, styles.segActive]}><Text style={styles.segTextActive}>°C</Text></View>
-        <View style={styles.seg}><Text style={styles.segText}>°F</Text></View>
+        {(['C', 'F'] as const).map(u => (
+          <TouchableOpacity key={u} style={[styles.seg, settings.tempUnit === u && styles.segActive]}
+            onPress={() => onSave({ ...settings, tempUnit: u })}>
+            <Text style={settings.tempUnit === u ? styles.segTextActive : styles.segText}>
+              {u === 'C' ? '°C' : '°F'}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       <Text style={styles.label}>Wind Speed Unit</Text>
       <View style={styles.row}>
-        <View style={[styles.seg, styles.segActive]}><Text style={styles.segTextActive}>m/s</Text></View>
-        <View style={styles.seg}><Text style={styles.segText}>km/h</Text></View>
+        {(['ms', 'kmh'] as const).map(u => (
+          <TouchableOpacity key={u} style={[styles.seg, settings.windUnit === u && styles.segActive]}
+            onPress={() => onSave({ ...settings, windUnit: u })}>
+            <Text style={settings.windUnit === u ? styles.segTextActive : styles.segText}>
+              {u === 'ms' ? 'm/s' : 'km/h'}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       <Text style={styles.label}>Risk Tolerance</Text>
       <View style={styles.row}>
-        <View style={styles.seg}><Text style={styles.segText}>Low</Text></View>
-        <View style={[styles.seg, styles.segActive]}><Text style={styles.segTextActive}>Medium</Text></View>
-        <View style={styles.seg}><Text style={styles.segText}>High</Text></View>
+        {(['Low', 'Medium', 'High'] as const).map(r => (
+          <TouchableOpacity key={r} style={[styles.seg, settings.riskTolerance === r && styles.segActive]}
+            onPress={() => onSave({ ...settings, riskTolerance: r })}>
+            <Text style={settings.riskTolerance === r ? styles.segTextActive : styles.segText}>{r}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
-
-      <View style={styles.divider} />
-
-      <Text style={{ color: '#999', fontStyle: 'italic' }}>
-        Settings functionality coming soon.
-      </Text>
     </View>
   );
 }
@@ -42,5 +51,4 @@ const styles = StyleSheet.create({
   segActive: { backgroundColor: '#3b82f6', borderColor: '#3b82f6' },
   segText: { color: '#333' },
   segTextActive: { color: '#fff' },
-  divider: { height: 1, backgroundColor: '#eee', marginVertical: 16 },
 });
