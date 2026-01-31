@@ -16,13 +16,12 @@ export function InsightsScreen({ plans, settings }: { plans: Plan[]; settings: S
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [loading, setLoading] = useState(false);
   const [forecast, setForecast] = useState<{ day: string; score: number; guidance: string; color: string }[]>([]);
-  const [mode, setMode] = useState<'Rule' | 'Model'>('Rule');
 
   // Calculate disruption score from weather data
-  const calcScore = (w: Weather, m: 'Rule' | 'Model') => {
-    const rainW = m === 'Rule' ? 6 : 7.56;
-    const windW = m === 'Rule' ? 4 : 1.71;
-    const tempW = m === 'Rule' ? 3 : 3.73;
+  const calcScore = (w: Weather) => {
+    const rainW = settings.useAI ? 7.56 : 6;
+    const windW = settings.useAI ? 1.71 : 4;
+    const tempW = settings.useAI ? 3.73 : 3;
     const pts = w.rain * rainW + w.wind * windW + Math.abs(w.temp - 20) * tempW;
     return Math.min(100, Math.max(0, Math.round(pts)));
   };
@@ -65,7 +64,7 @@ export function InsightsScreen({ plans, settings }: { plans: Plan[]; settings: S
           rain: data.hourly.precipitation[idx],
           wind: data.hourly.wind_speed_10m[idx] / 3.6,
         };
-        const score = calcScore(w, mode);
+        const score = calcScore(w);
         const g = getGuidance(score);
         // Figure out which day this is
         const date = new Date(today);
@@ -85,22 +84,16 @@ export function InsightsScreen({ plans, settings }: { plans: Plan[]; settings: S
     }
   };
 
-  // Fetch when mode changes
+  // Fetch when AI setting changes
   useEffect(() => {
     if (location) fetchForecast(location.lat, location.lon);
-  }, [mode]);
+  }, [settings.useAI]);
 
   return (
     <View style={{ flex: 1, paddingTop: 20, paddingHorizontal: 20 }}>
       <Text style={styles.title}>Insights</Text>
-      <Text style={styles.label}>Scoring Mode</Text>
-      <View style={styles.row}>
-        {(['Rule', 'Model'] as const).map(m => (
-          <TouchableOpacity key={m} style={[styles.seg, mode === m && styles.segActive]} onPress={() => setMode(m)}>
-            <Text style={mode === m ? styles.segTextActive : styles.segText}>{m}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {/* Show which PDS mode is active */}
+      <Text style={styles.modeStatus}>{settings.useAI ? 'AI Results' : 'Non-AI Results'}</Text>
 
       {!location && (
         <TouchableOpacity style={styles.btn} onPress={useCurrentLocation}>
@@ -133,7 +126,7 @@ export function InsightsScreen({ plans, settings }: { plans: Plan[]; settings: S
           keyExtractor={item => item.id}
           renderItem={({ item }) => {
             // Pick score based on current mode toggle
-            const score = mode === 'Rule' ? item.savedRuleScore : item.savedModelScore;
+            const score = settings.useAI ? item.savedModelScore : item.savedRuleScore;
             const t = settings.riskTolerance === 'Low' ? [25, 50] : settings.riskTolerance === 'High' ? [45, 75] : [33, 66];
             const scoreColor = score === undefined ? '#999' : score <= t[0] ? '#22c55e' : score <= t[1] ? '#f97316' : '#ef4444';
             return (
@@ -156,11 +149,7 @@ export function InsightsScreen({ plans, settings }: { plans: Plan[]; settings: S
 const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
   label: { fontSize: 14, fontWeight: '600', marginTop: 12, marginBottom: 4 },
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  seg: { paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: '#ccc', borderRadius: 8 },
-  segActive: { backgroundColor: '#3b82f6', borderColor: '#3b82f6' },
-  segText: { color: '#333' },
-  segTextActive: { color: '#fff' },
+  modeStatus: { color: '#666', fontSize: 13, marginBottom: 4 },
   btn: { backgroundColor: '#3b82f6', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 16 },
   btnText: { color: '#fff', fontWeight: '600', fontSize: 16 },
   pastSection: { flex: 1, backgroundColor: '#eee', borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 16, marginTop: 16, borderWidth: 1, borderColor: '#ccc', borderBottomWidth: 0 },

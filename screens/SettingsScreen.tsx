@@ -39,6 +39,19 @@ export function SettingsScreen({ settings, onSave }: { settings: Settings; onSav
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* AI uses trained weights, Non-AI uses my set weights */}
+      <Text style={styles.label}>Scoring Mode</Text>
+      <View style={styles.row}>
+        {([false, true] as const).map(ai => (
+          <TouchableOpacity key={String(ai)} style={[styles.seg, settings.useAI === ai && styles.segActive]}
+            onPress={() => onSave({ ...settings, useAI: ai })}>
+            <Text style={settings.useAI === ai ? styles.segTextActive : styles.segText}>
+              {ai ? 'AI' : 'Non-AI'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
     </View>
   );
 }

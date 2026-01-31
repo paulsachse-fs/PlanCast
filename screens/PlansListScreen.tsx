@@ -9,7 +9,6 @@ export function PlansList({ plans, onAdd, onSelect, settings }: {
   settings: Settings;
 }) {
   const [weather, setWeather] = useState<Weather | null>(null);
-  const [mode, setMode] = useState<'Rule' | 'Model'>('Rule');
 
   // Only show future plans
   const now = new Date();
@@ -36,9 +35,9 @@ export function PlansList({ plans, onAdd, onSelect, settings }: {
 
   // Calculate disruption score from weather data
   const calcScore = (w: Weather) => {
-    const rainW = mode === 'Rule' ? 6 : 7.56;
-    const windW = mode === 'Rule' ? 4 : 1.71;
-    const tempW = mode === 'Rule' ? 3 : 3.73;
+    const rainW = settings.useAI ? 7.56 : 6;
+    const windW = settings.useAI ? 1.71 : 4;
+    const tempW = settings.useAI ? 3.73 : 3;
     const rainPts = w.rain * rainW;
     const windPts = w.wind * windW;
     const tempPts = Math.abs(w.temp - 20) * tempW;
@@ -105,13 +104,8 @@ export function PlansList({ plans, onAdd, onSelect, settings }: {
         </View>
       </View>
 
-      <View style={styles.modeRow}>
-        {(['Rule', 'Model'] as const).map(m => (
-          <TouchableOpacity key={m} style={[styles.seg, mode === m && styles.segActive]} onPress={() => setMode(m)}>
-            <Text style={mode === m ? styles.segTextActive : styles.segText}>{m}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {/* Which PDS mode is active */}
+      <Text style={styles.modeStatus}>{settings.useAI ? 'AI Results' : 'Non-AI Results'}</Text>
 
       {/* PDS Circle */}
       <View style={{ flex: 2, alignItems: 'center', justifyContent: 'center' }}>
@@ -159,11 +153,7 @@ const styles = StyleSheet.create({
   empty: { color: '#999', textAlign: 'center', marginTop: 40 },
   addBtn: { position: 'absolute', bottom: 16, right: 16, backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, flexDirection: 'row', alignItems: 'center' },
   addBtnText: { fontSize: 14, fontWeight: '600' },
-  modeRow: { flexDirection: 'row', gap: 8, marginTop: 12, justifyContent: 'center' },
-  seg: { paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: '#ccc', borderRadius: 8 },
-  segActive: { backgroundColor: '#3b82f6', borderColor: '#3b82f6' },
-  segText: { color: '#333' },
-  segTextActive: { color: '#fff' },
+  modeStatus: { textAlign: 'center', color: '#666', fontSize: 13, marginTop: 10 },
   keyColumn: { position: 'absolute', top: 20, right: 20, gap: 4, zIndex: 1 },
   keyItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   keyDot: { width: 10, height: 10, borderRadius: 5 },

@@ -5,7 +5,6 @@ import { Plan, Weather, Settings } from '../App';
 export function PlanDetails({ plan, onBack, onDelete, settings }: { plan: Plan; onBack: () => void; onDelete: (id: string) => void; settings: Settings }) {
   const [weather, setWeather] = useState<Weather | null>(null);
   const [error, setError] = useState('');
-  const [mode, setMode] = useState<'Rule' | 'Model'>('Rule');
 
   useEffect(() => {
     fetchWeather();
@@ -29,10 +28,10 @@ export function PlanDetails({ plan, onBack, onDelete, settings }: { plan: Plan; 
   };
 
   // Calculate PDS
-  const calcScore = (w: Weather, m: 'Rule' | 'Model') => {
-    const rainW = m === 'Rule' ? 6 : 7.56;
-    const windW = m === 'Rule' ? 4 : 1.71;
-    const tempW = m === 'Rule' ? 3 : 3.73;
+  const calcScore = (w: Weather) => {
+    const rainW = settings.useAI ? 7.56 : 6;
+    const windW = settings.useAI ? 1.71 : 4;
+    const tempW = settings.useAI ? 3.73 : 3;
     const rainPts = w.rain * rainW;
     const windPts = w.wind * windW;
     const tempPts = Math.abs(w.temp - 20) * tempW;
@@ -84,7 +83,7 @@ export function PlanDetails({ plan, onBack, onDelete, settings }: { plan: Plan; 
     return 'Warm temperatures may be a factor.';
   };
 
-  const score = weather ? calcScore(weather, mode) : null;
+  const score = weather ? calcScore(weather) : null;
   const guidance = score ? getGuidance(score.total) : null;
 
   return (
@@ -128,15 +127,8 @@ export function PlanDetails({ plan, onBack, onDelete, settings }: { plan: Plan; 
             </View>
           </View>
 
-          {/* Mode Toggle */}
-          <Text style={styles.modeLabel}>Scoring Mode</Text>
-          <View style={styles.row}>
-            {(['Rule', 'Model'] as const).map(m => (
-              <TouchableOpacity key={m} style={[styles.seg, mode === m && styles.segActive]} onPress={() => setMode(m)}>
-                <Text style={mode === m ? styles.segTextActive : styles.segText}>{m}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          {/* Which scoring mode is active */}
+          <Text style={styles.modeStatus}>{settings.useAI ? 'AI Results' : 'Non-AI Results'}</Text>
         </>
       )}
 
@@ -163,12 +155,7 @@ const styles = StyleSheet.create({
   badge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16 },
   dot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
   badgeText: { fontSize: 14, fontWeight: '600' },
-  modeLabel: { fontSize: 13, fontWeight: '600', color: '#64748b', marginTop: 20, marginBottom: 8, paddingHorizontal: 8 },
-  row: { flexDirection: 'row', gap: 8, paddingHorizontal: 8 },
-  seg: { paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 8, backgroundColor: '#fff' },
-  segActive: { backgroundColor: '#3b82f6', borderColor: '#3b82f6' },
-  segText: { color: '#475569' },
-  segTextActive: { color: '#fff' },
+  modeStatus: { color: '#64748b', fontSize: 13, marginTop: 16, paddingHorizontal: 8 },
   deleteBtn: { backgroundColor: '#fee2e2', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 'auto' },
   deleteBtnText: { color: '#dc2626', fontWeight: '600', fontSize: 16 },
 });

@@ -50,9 +50,10 @@ export type Settings = {
   tempUnit: 'C' | 'F';
   windUnit: 'ms' | 'kmh';
   riskTolerance: 'Low' | 'Medium' | 'High';
+  useAI: boolean;
 };
 
-const DEFAULT_SETTINGS: Settings = { tempUnit: 'C', windUnit: 'ms', riskTolerance: 'Medium' };
+const DEFAULT_SETTINGS: Settings = { tempUnit: 'C', windUnit: 'ms', riskTolerance: 'Medium', useAI: false };
 
 export default function App() {
   const [screen, setScreen] = useState<'list' | 'new' | 'details'>('list');
