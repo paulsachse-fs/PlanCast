@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert, StyleSheet, FlatList } from 'react-native';
+import { View, Text, Alert, StyleSheet, FlatList } from 'react-native';
 import * as Location from 'expo-location';
 import { Plan, Settings } from '../App';
 
@@ -14,7 +14,7 @@ export function InsightsScreen({ plans, settings }: { plans: Plan[]; settings: S
   const now = new Date();
   const pastPlans = plans.filter(plan => new Date(`${plan.date}T${plan.time}`) < now).sort((a, b) => b.date.localeCompare(a.date));
   const [location, setLocation] = useState<{ lat: number; lon: number } | null>(null);
-  const [loading, setLoading] = useState(false);
+
   const [forecast, setForecast] = useState<{ day: string; score: number; guidance: string; color: string }[]>([]);
 
   // Calculate disruption score from weather data
@@ -39,12 +39,10 @@ export function InsightsScreen({ plans, settings }: { plans: Plan[]; settings: S
       Alert.alert('Permission denied');
       return;
     }
-    setLoading(true);
     const loc = await Location.getCurrentPositionAsync({});
     const coords = { lat: loc.coords.latitude, lon: loc.coords.longitude };
     setLocation(coords);
     await fetchForecast(coords.lat, coords.lon);
-    setLoading(false);
   };
 
   const fetchForecast = async (lat: number, lon: number) => {
@@ -89,16 +87,19 @@ export function InsightsScreen({ plans, settings }: { plans: Plan[]; settings: S
     if (location) fetchForecast(location.lat, location.lon);
   }, [settings.useAI]);
 
+  // Fetch forecast
+  useEffect(() => {
+    useCurrentLocation();
+  }, []);
+
   return (
     <View style={{ flex: 1, paddingTop: 20, paddingHorizontal: 20 }}>
       <Text style={styles.title}>Insights</Text>
       {/* Show which PDS mode is active */}
       <Text style={styles.modeStatus}>{settings.useAI ? 'AI Results' : 'Non-AI Results'}</Text>
 
-      {!location && (
-        <TouchableOpacity style={styles.btn} onPress={useCurrentLocation}>
-          <Text style={styles.btnText}>{loading ? 'Loading...' : 'Get Current Location PDS Forecast'}</Text>
-        </TouchableOpacity>
+      {forecast.length === 0 && (
+        <Text style={styles.label}>Loading 5-Day Forecast...</Text>
       )}
 
       {forecast.length > 0 && (
@@ -150,8 +151,6 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 16 },
   label: { fontSize: 14, fontWeight: '600', marginTop: 12, marginBottom: 4 },
   modeStatus: { color: '#666', fontSize: 13, marginBottom: 4 },
-  btn: { backgroundColor: '#3b82f6', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 16 },
-  btnText: { color: '#fff', fontWeight: '600', fontSize: 16 },
   pastSection: { flex: 1, backgroundColor: '#eee', borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 16, marginTop: 16, borderWidth: 1, borderColor: '#ccc', borderBottomWidth: 0 },
   pastTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' },
   pastCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#ddd', padding: 12, borderRadius: 8, marginBottom: 8, borderWidth: 1, borderColor: '#999' },

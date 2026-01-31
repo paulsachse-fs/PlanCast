@@ -89,9 +89,6 @@ export function PlanDetails({ plan, onBack, onDelete, settings }: { plan: Plan; 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <TouchableOpacity onPress={onBack}>
-        <Text style={styles.back}>← Back</Text>
-      </TouchableOpacity>
       <Text style={styles.title}>{plan.title}</Text>
       <Text style={styles.subtitle}>{plan.date} at {plan.time}</Text>
       <Text style={styles.subtitle}>{plan.activity} · {plan.importance} importance</Text>
@@ -136,17 +133,21 @@ export function PlanDetails({ plan, onBack, onDelete, settings }: { plan: Plan; 
       <TouchableOpacity style={styles.deleteBtn} onPress={() => onDelete(plan.id)}>
         <Text style={styles.deleteBtnText}>Delete Plan</Text>
       </TouchableOpacity>
+      <TouchableOpacity style={styles.doneBtn} onPress={onBack}>
+        <Text style={styles.doneBtnText}>Done</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 24, backgroundColor: '#f8fafc' },
-  back: { color: '#3b82f6', fontSize: 16, marginBottom: 12, paddingHorizontal: 8 },
-  title: { fontSize: 26, fontWeight: 'bold', color: '#1e293b', marginBottom: 4, paddingHorizontal: 8 },
-  subtitle: { fontSize: 15, color: '#64748b', marginBottom: 2, paddingHorizontal: 8 },
-  loading: { color: '#64748b', marginTop: 20 },
-  error: { color: '#ef4444', marginTop: 20 },
+  doneBtn: { padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 12 },
+  doneBtnText: { color: '#3b82f6', fontWeight: '600', fontSize: 16 },
+  title: { fontSize: 26, fontWeight: 'bold', color: '#1e293b', marginBottom: 4, paddingHorizontal: 16, marginTop: 30 },
+  subtitle: { fontSize: 15, color: '#64748b', marginBottom: 2, paddingHorizontal: 16 },
+  loading: { color: '#64748b', marginTop: 20, paddingHorizontal: 16 },
+  error: { color: '#ef4444', marginTop: 20, paddingHorizontal: 16 },
   card: { backgroundColor: '#fff', borderRadius: 12, padding: 16, marginTop: 16 },
   cardLabel: { fontSize: 13, fontWeight: '600', color: '#64748b', marginTop: 8, marginBottom: 4 },
   cardText: { fontSize: 15, color: '#334155', marginBottom: 2 },
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
   badge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16 },
   dot: { width: 8, height: 8, borderRadius: 4, marginRight: 6 },
   badgeText: { fontSize: 14, fontWeight: '600' },
-  modeStatus: { color: '#64748b', fontSize: 13, marginTop: 16, paddingHorizontal: 8 },
-  deleteBtn: { backgroundColor: '#fee2e2', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 'auto' },
+  modeStatus: { color: '#64748b', fontSize: 13, marginTop: 16, paddingHorizontal: 16 },
+  deleteBtn: { backgroundColor: '#fee2e2', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 'auto', marginHorizontal: 16 },
   deleteBtnText: { color: '#dc2626', fontWeight: '600', fontSize: 16 },
 });

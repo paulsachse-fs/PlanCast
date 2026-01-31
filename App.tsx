@@ -34,6 +34,7 @@ export type Plan = {
   lat: number;
   lon: number;
   locationName?: string;
+  reminderHours: number;
   savedRuleScore?: number;
   savedModelScore?: number;
 };
@@ -150,33 +151,15 @@ export default function App() {
     setLocations(updated);
   };
 
-  // Schedule reminder notifications for plan
+  // Schedule reminder notification for plan
   const scheduleReminders = async (plan: Plan) => {
-    // Time to milliseconds
     const planTime = new Date(`${plan.date}T${plan.time}`).getTime();
     const now = Date.now();
-
-    // 3 second test reminder
-    await Notifications.scheduleNotificationAsync({
-      content: { title: 'Test Reminder', body: `Plan "${plan.title}" was created!` },
-      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: new Date(now + 3000) },
-    });
-
-    // 24 hours reminder to check forecast
-    const t24 = planTime - 24 * 60 * 60 * 1000;
-    if (t24 > now) {
+    const reminderTime = planTime - plan.reminderHours * 60 * 60 * 1000;
+    if (reminderTime > now) {
       await Notifications.scheduleNotificationAsync({
-        content: { title: 'Plan Tomorrow', body: `Check the forecast for "${plan.title}"` },
-        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: new Date(t24) },
-      });
-    }
-
-    // 2 hour reminder
-    const t2 = planTime - 2 * 60 * 60 * 1000;
-    if (t2 > now) {
-      await Notifications.scheduleNotificationAsync({
-        content: { title: 'Plan Soon', body: `"${plan.title}" is in 2 hours. Review the PDS!` },
-        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: new Date(t2) },
+        content: { title: 'Plan Reminder', body: `"${plan.title}" is in ${plan.reminderHours} hour${plan.reminderHours === 1 ? '' : 's'}!` },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: new Date(reminderTime) },
       });
     }
   };

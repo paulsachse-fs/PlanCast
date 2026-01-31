@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, SafeAreaView, Alert
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Location from 'expo-location';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { Plan, Activity, Importance, SavedLocation } from '../App';
@@ -20,6 +21,7 @@ export function NewPlan({ onSave, onBack, addLocation, savedLocations }: {
   const [location, setLocation] = useState({ lat: 28.6, lon: 81.3, name: '' });
   const [activity, setActivity] = useState<Activity>('Outdoor');
   const [importance, setImportance] = useState<Importance>('Medium');
+  const [reminderHours, setReminderHours] = useState(2);
 
   const activities: Activity[] = ['Outdoor', 'Indoor', 'Commute', 'Other'];
   const importances: Importance[] = ['Low', 'Medium', 'High'];
@@ -72,6 +74,7 @@ export function NewPlan({ onSave, onBack, addLocation, savedLocations }: {
       time,
       activity,
       importance,
+      reminderHours,
       lat: location.lat,
       lon: location.lon,
       locationName: location.name || undefined,
@@ -86,11 +89,35 @@ export function NewPlan({ onSave, onBack, addLocation, savedLocations }: {
       <Text style={styles.label}>Title</Text>
       <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="e.g., Beach Day" />
 
-      <Text style={styles.label}>Date (YYYY-MM-DD)</Text>
-      <TextInput style={styles.input} value={date} onChangeText={setDate} />
-
-      <Text style={styles.label}>Time (HH:MM)</Text>
-      <TextInput style={styles.input} value={time} onChangeText={setTime} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
+        <Text style={{ fontSize: 14, fontWeight: '600' }}>Date:</Text>
+        <DateTimePicker
+          value={new Date(`${date}T${time}`)}
+          mode="date"
+          themeVariant="light"
+          onChange={(_event, selectedDate) => {
+            if (selectedDate) {
+              const y = selectedDate.getFullYear();
+              const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+              const d = String(selectedDate.getDate()).padStart(2, '0');
+              setDate(`${y}-${m}-${d}`);
+            }
+          }}
+        />
+        <Text style={{ fontSize: 14, fontWeight: '600', marginLeft: 12 }}>Time:</Text>
+        <DateTimePicker
+          value={new Date(`${date}T${time}`)}
+          mode="time"
+          themeVariant="light"
+          onChange={(_event, selectedDate) => {
+            if (selectedDate) {
+              const h = String(selectedDate.getHours()).padStart(2, '0');
+              const min = String(selectedDate.getMinutes()).padStart(2, '0');
+              setTime(`${h}:${min}`);
+            }
+          }}
+        />
+      </View>
 
       <Text style={styles.label}>Location Name</Text>
       <TextInput
@@ -153,6 +180,17 @@ export function NewPlan({ onSave, onBack, addLocation, savedLocations }: {
             <Text style={importance === i ? styles.segTextActive : styles.segText}>{i}</Text>
           </TouchableOpacity>
         ))}
+      </View>
+
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 12 }}>
+        <Text style={{ fontSize: 14, fontWeight: '600' }}>Remind me:</Text>
+        <TouchableOpacity onPress={() => setReminderHours(Math.max(1, reminderHours - 1))} style={[styles.seg, { marginLeft: 10 }]}>
+          <Text style={styles.segText}>-</Text>
+        </TouchableOpacity>
+        <Text style={{ fontSize: 16, fontWeight: '600', marginHorizontal: 8 }}>{reminderHours} hour{reminderHours !== 1 ? 's' : ''} before</Text>
+        <TouchableOpacity onPress={() => setReminderHours(Math.min(72, reminderHours + 1))} style={styles.seg}>
+          <Text style={styles.segText}>+</Text>
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={styles.btn} onPress={handleSave}>

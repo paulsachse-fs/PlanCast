@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   planTitle: { fontSize: 18, fontWeight: '600' },
   planSub: { color: '#666', marginTop: 4 },
   empty: { color: '#999', textAlign: 'center', marginTop: 40 },
-  addBtn: { position: 'absolute', bottom: 16, right: 16, backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, flexDirection: 'row', alignItems: 'center' },
+  addBtn: { position: 'absolute', bottom: 16, right: 16, backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, flexDirection: 'row', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 4, elevation: 4 },
   addBtnText: { fontSize: 14, fontWeight: '600' },
   modeStatus: { textAlign: 'center', color: '#666', fontSize: 13, marginTop: 10 },
   keyColumn: { position: 'absolute', top: 20, right: 20, gap: 4, zIndex: 1 },

@@ -12,7 +12,8 @@
         {
           "locationWhenInUsePermission": "This app uses your location to get weather forecasts for your plans."
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "android": {
       "permissions": [
